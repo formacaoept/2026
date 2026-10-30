@@ -372,11 +372,11 @@ $("hf").addEventListener("submit",function(ev){
   var assunto=(modo==="pend"?"Atividades pendentes":"Dúvida")+" - Formação de Professores - "+cursoSel;
   var btn=$("hf").querySelector(".send");btn.disabled=true;btn.textContent="Enviando...";msg("",true);
   function volta(){btn.disabled=false;btn.textContent="Enviar e-mail"}
-  function falha(){volta();msg("Não foi possível enviar agora. Tente novamente em instantes ou escreva para "+EMAIL+".",false)}
+  function falha(det){volta();msg("Não foi possível enviar agora. Tente novamente em instantes ou escreva para "+EMAIL+"."+(det?" [Detalhe técnico: "+det+"]":""),false)}
   fetch("https://formsubmit.co/ajax/"+EMAIL,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({_subject:assunto,_captcha:"false",_template:"table","Tipo":modo==="pend"?"Atividades pendentes":"Dúvida","Nome completo":nome,email:email,"CPF":cpf,"Curso":cursoSel,"Escola":esc,"Consentimento LGPD":"Aceito em "+new Date().toLocaleString("pt-BR"),"Mensagem":d||"(sem observações)"})})
-  .then(function(r){return r.json()})
-  .then(function(j){if(j&&(j.success===true||j.success==="true")){volta();["f-nome","f-email","f-cpf","f-escola","f-duvida"].forEach(function(i){$(i).value=""});$("f-lgpd").checked=false;msg("Mensagem enviada! A equipe da formação responderá por e-mail.",true)}else{falha()}})
-  .catch(falha);
+  .then(function(r){return r.text().then(function(t){var j=null;try{j=JSON.parse(t)}catch(x){}if(!j)throw new Error("resposta inesperada (HTTP "+r.status+")");j._http=r.status;return j})})
+  .then(function(j){if(j&&(j.success===true||j.success==="true")){volta();["f-nome","f-email","f-cpf","f-escola","f-duvida"].forEach(function(i){$(i).value=""});$("f-lgpd").checked=false;msg("Mensagem enviada! A equipe da formação responderá por e-mail.",true)}else{falha("FormSubmit respondeu: "+String((j&&j.message)||"sem mensagem")+" (HTTP "+j._http+")")}})
+  .catch(function(err){falha(err&&err.message&&err.message!=="Failed to fetch"?err.message:"o navegador não conseguiu contatar o formsubmit.co (rede, bloqueador ou página aberta fora do site)")});
 });
 render();
 </script>
