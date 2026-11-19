@@ -162,6 +162,13 @@ a.btn.grande{display:inline-block;padding:10px 20px;font-size:1rem}
 .cert svg{flex:none}
 .cert .ct{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .cert.breve{border-left-color:var(--ye);background:rgba(254,196,62,.16)}
+.atualiza{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--pk);border-left:8px solid var(--pk);border-radius:12px;padding:10px 14px;background:#ffe3ea;color:#0a3442;margin:0 0 12px}
+:root[data-theme="dark"] .atualiza{background:#4a2433;color:#ffe3ea}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .atualiza{background:#4a2433;color:#ffe3ea}}
+.atualiza svg{flex:none;margin-top:2px}
+.atualiza .at-d{font-size:1.05rem;font-weight:600}
+.atualiza .at-d b{background:var(--pk);color:#fff;border-radius:999px;padding:2px 12px;margin-left:4px}
+.atualiza .at-n{margin:6px 0 0;font-size:.92rem;line-height:1.4}
 .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
 .acts .back{margin:0}
 .send{background:var(--btn);color:var(--btntx);border:0;border-radius:999px;padding:9px 20px;font:inherit;font-weight:600;cursor:pointer}
@@ -191,7 +198,7 @@ a.btn.grande{display:inline-block;padding:10px 20px;font-size:1rem}
 </form></div></div>
 <div class="modal" id="modal2" hidden role="dialog" aria-modal="true" aria-labelledby="mt2"><div class="box">
 <h2 id="mt2">Quais atividades faltam?</h2>
-<p class="atual" id="c-data"></p>
+<div class="atualiza" id="c-data"></div>
 <p class="mu">Digite seu e-mail para ver quanto você já avançou em cada módulo e quais atividades obrigatórias ainda faltam.</p>
 <p class="nota75" id="c-nota"><b>Para a certificação,</b> é preciso ter realizado pelo menos <b>75%</b> das atividades obrigatórias.</p>
 <form id="cf" novalidate>
@@ -308,6 +315,13 @@ async function consultar(email){
 function el(tag,txt,cls,pai){var e=document.createElement(tag);if(txt)e.textContent=txt;if(cls)e.className=cls;if(pai)pai.appendChild(e);return e}
 function pct(f,t){return t?Math.round(f*100/t):0}
 function rotUni(u){return u==="SINCRONO"?"Encontros síncronos":/^U\d+$/.test(u)?"Unidade "+u.slice(1):u}
+var IC_ATENCAO='<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M12 3.2 22 20.5H2z" fill="#fec43e" stroke="#0a3442" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 9.5v5" stroke="#0a3442" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.4" r="1.2" fill="#0a3442"/></svg>';
+function atualBox(c){
+  c.innerHTML=IC_ATENCAO;c.setAttribute("role","note");
+  var tx=el("div",null,null,c);
+  var t=el("div",null,"at-d",tx);t.appendChild(document.createTextNode("Última atualização: "));el("b",PEND_DATA,null,t);
+  el("p","Os dados são atualizados semanalmente. Se você concluiu uma atividade depois dessa data, ela será atualizada na semana seguinte.","at-n",tx);
+}
 function resultado(d){
   var r=$("c-res");r.innerHTML="";
   if(d===false){el("p","Não foi possível consultar agora. Tente de novo ou use o botão “Preciso de ajuda”.","erro",r);return}
@@ -318,7 +332,7 @@ function resultado(d){
     var bh=el("button",null,"help","");bh.type="button";bh.dataset.help="ajuda";bh.innerHTML=IC_AJ+"Preciso de ajuda";r.appendChild(bh);return}
   $("c-nota").hidden=true;
   var b=el("div",null,"res",r);
-  el("p","Dados atualizados em "+PEND_DATA,"atual",b);
+  atualBox(el("div",null,"atualiza",b));
   var p=el("p",null,null,b);el("b","Olá, "+d.nome+"!",null,p);
   var np=el("p",null,"nota75",b);np.innerHTML="<b>Para a certificação,</b> é preciso ter realizado pelo menos <b>"+PEND_META+"%</b> das atividades obrigatórias. A linha preta na barra marca os "+PEND_META+"%.";
   d.eixos.forEach(function(ex){
@@ -385,9 +399,9 @@ function resultado(d){
     if(falta>0)pesq();
   });
   });
-  el("p","Se você concluiu uma atividade depois de "+PEND_DATA+", ela só aparece na próxima atualização.","peq",b);
+  el("p","Última atualização: "+PEND_DATA+". Atividades concluídas depois dessa data aparecem na atualização da semana seguinte.","peq",b);
 }
-function abrirConsulta(){$("c-nota").hidden=false;$("c-data").textContent="Dados atualizados em "+PEND_DATA;$("c-ok").checked=false;$("modal2").hidden=false;$("c-res").innerHTML="";$("c-email").focus()}
+function abrirConsulta(){$("c-nota").hidden=false;atualBox($("c-data"));$("c-ok").checked=false;$("modal2").hidden=false;$("c-res").innerHTML="";$("c-email").focus()}
 function fecharConsulta(){$("modal2").hidden=true}
 $("cf").addEventListener("submit",function(ev){
   ev.preventDefault();
